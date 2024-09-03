@@ -1,0 +1,54 @@
+services:
+  server:
+    build:
+      context: .
+    expose:
+      - 5173
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+    ports:
+      - 9000:80
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_NAME=${DB_NAME:-resisync}
+      - DB_PASSWORD=${DB_PASSWORD:-admin}
+  db:
+    image: mariadb
+    restart: always
+    user: root
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MARIADB_DATABASE=${DB_NAME:-resisync}
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD:-admin}
+    expose:
+      - 3306
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/usr/local/bin/healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - 9090:80
+    depends_on:
+      - db
+    environment:
+      - PMA_HOST=db
+volumes:
+  db-data:
