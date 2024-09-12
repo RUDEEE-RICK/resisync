@@ -4,13 +4,8 @@ services:
       context: .
     expose:
       - 5173
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
     ports:
-      - 9000:80
+      - 9001:80
     depends_on:
       db:
         condition: service_healthy
@@ -19,6 +14,11 @@ services:
       - DB_USER=root
       - DB_NAME=${DB_NAME:-resisync}
       - DB_PASSWORD=${DB_PASSWORD:-admin}
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
   db:
     image: mariadb
     restart: always
